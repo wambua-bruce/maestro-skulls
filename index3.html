@@ -1,0 +1,753 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>BRUNO SCHOOLS OF EXCELLENCE — School Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        :root{
+            --accent:#2d3e50; --muted:#6b7280; --glass: rgba(255,255,255,0.94);
+        }
+        html,body{
+            height:100%;
+            margin:0;
+            font-family:'Segoe UI',Arial,sans-serif;
+            background: url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=2000&q=80') no-repeat center center fixed;
+            background-size: cover;
+        }
+        /* overlay to keep content readable - non-interactive so it doesn't block clicks */
+        body:before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(20,35,60,0.6), rgba(20,35,60,0.55));
+            z-index: 0;
+            pointer-events: none;
+        }
+        header{background:rgba(45,62,80,0.95);color:#fff;padding:1rem 1rem;text-align:center;letter-spacing:1px;box-shadow:0 4px 12px rgba(0,0,0,0.12);position:relative;z-index:3}
+        #sidebar{
+            position:fixed;top:0;left:-260px;width:260px;height:100%;background:linear-gradient(180deg,#16232b,#1a2533);
+            z-index:1100;padding-top:4rem;box-shadow:2px 0 8px rgba(0,0,0,.07);
+            transition:left .28s;
+        }
+        #sidebar.open{left:0;}
+        #sidebar button{display:block;width:90%;margin:0.7rem auto;background:none;border:0;color:#fff;font-size:1.02rem;font-weight:700;text-align:left;padding:.7rem 1rem;border-radius:6px;cursor:pointer;transition:background .16s}
+        #sidebar button.active,#sidebar button:hover{background:#2d3e50}
+        #dashboard-icon{
+            position:fixed;top:1rem;left:1rem;width:48px;height:48px;background:#2d3e50;
+            color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;
+            font-size:1.6rem;z-index:1201;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.12);
+            user-select:none;
+            pointer-events:auto;
+        }
+        #main-content{margin-left:0;padding:1.5rem;min-height:calc(100vh - 88px);background:var(--glass);border-radius:12px;box-shadow:0 6px 30px rgba(0,0,0,0.15);margin-top:1rem;overflow:auto;position:relative;z-index:2;}
+        .tab-section{display:none;}
+        .tab-section.active{display:block;}
+        .fullscreen-btn{position:fixed;top:1rem;right:1rem;background:#2a5298;color:#fff;border:0;border-radius:6px;padding:.5rem 1rem;font-size:0.95rem;cursor:pointer;z-index:1200;pointer-events:auto;}
+        @media(max-width:900px){
+            #sidebar{width:60vw;}
+            #main-content{padding:1rem;}
+        }
+        @media(max-width:600px){
+            #sidebar{width:90vw;}
+            #main-content{padding:0.5rem;}
+            .fullscreen-btn{top:0.6rem;right:0.6rem;padding:.35rem .7rem;}
+        }
+        .form-group{margin-bottom:0.9rem;}
+        label{display:block;margin-bottom:0.3rem;color:var(--muted)}
+        input,select,textarea{width:100%;padding:0.55rem;border-radius:6px;border:1px solid #d1d5db;background:#fff;}
+        button[type="submit"],.btn{background:#2a5298;color:#fff;border:0;padding:.55rem 1rem;border-radius:6px;cursor:pointer;}
+        .section-title{font-size:1.3rem;margin-bottom:0.8rem;color:var(--accent)}
+        ul{padding-left:1.2rem;}
+        .list-title{margin-top:1rem;}
+        .report-card{background:#f9fafb;border-radius:8px;padding:0.9rem;margin-bottom:0.9rem;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+        .timetable-table{width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:0.95rem;}
+        .timetable-table th,.timetable-table td{border:1px solid #e2e8f0;padding:0.5rem;text-align:center;background:#fff;}
+        .timetable-table th{background:#2a5298;color:#fff;}
+        .payment-options{display:flex;gap:0.6rem;flex-wrap:wrap;}
+        .payment-option{background:#eef2ff;padding:0.5rem 0.7rem;border-radius:6px;cursor:pointer;border:1px solid #dbeafe;}
+        .contact-list{list-style:none;padding:0;color:#0f172a;}
+        .contact-list li{margin-bottom:0.5rem;}
+        .comm-platforms{display:flex;gap:0.6rem;flex-wrap:wrap;}
+        .comm-platform{background:#eef2ff;padding:0.5rem 0.7rem;border-radius:6px;}
+        .search-bar{margin-bottom:0.8rem;}
+        .search-bar input{width:60%;padding:0.45rem;border-radius:6px;}
+        .student-actions button{margin-right:0.4rem;}
+        .graduation-gallery{display:flex;gap:0.8rem;flex-wrap:wrap;margin-bottom:1rem;}
+        .graduation-gallery img{width:170px;height:110px;object-fit:cover;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.18);cursor:pointer;transition:transform .16s}
+        .graduation-gallery img:hover{transform:scale(1.03)}
+        .feedback-list{margin-top:0.8rem;color:#07203b;}
+        .feedback-list li{margin-bottom:0.6rem;background:#fff;padding:0.6rem;border-radius:6px;}
+        .e-services-list li{margin-bottom:0.6rem;}
+        .opac-table{width:100%;border-collapse:collapse;margin-bottom:1rem;background:#fff;}
+        .opac-table th,.opac-table td{border:1px solid #e2e8f0;padding:0.5rem;text-align:left;}
+        .opac-table th{background:#2a5298;color:#fff;}
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(3,7,18,0.8);
+            z-index: 2000;
+            padding: 1rem;
+        }
+        .lightbox.open { display:flex; }
+        .lightbox-content { max-width:1200px; width:100%; border-radius:8px; overflow:hidden; background:#071124; padding:0.5rem; }
+        .lightbox-content img { width:100%; height:auto; display:block; border-radius:6px; }
+        .lightbox-caption { color:#e6eef8; padding:0.5rem; font-size:0.95rem; text-align:left; }
+        .lightbox-close { position:absolute; top:1rem; right:1rem; background:#ffffff22; border:0; color:#fff; padding:0.4rem 0.6rem; border-radius:6px; cursor:pointer; font-weight:700; z-index:2100; }
+        .shortcut-hint { position: fixed; right: 1rem; bottom: 1rem; background: rgba(255,255,255,0.9); color:#0b2440; padding:0.6rem 0.9rem; border-radius:8px; font-size:0.85rem; z-index:1300; box-shadow:0 4px 12px rgba(0,0,0,0.12); }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>BRUNO SCHOOLS OF EXCELLENCE</h1>
+        <p>School Management System — Click the dashboard icon to show/hide navigation</p>
+    </header>
+
+    <div id="dashboard-icon" title="Show Menu" role="button" tabindex="0" aria-controls="sidebar" aria-expanded="false">&#9776;</div>
+    <nav id="sidebar" aria-hidden="true">
+        <button class="active" data-section="dashboard">Dashboard</button>
+        <button data-section="students">Students</button>
+        <button data-section="classes">Classes</button>
+        <button data-section="timetable">Timetable</button>
+        <button data-section="attendance">Attendance</button>
+        <button data-section="library">Library</button>
+        <button data-section="opac">OPAC</button>
+        <button data-section="finance">Finance</button>
+        <button data-section="grading">Grading</button>
+        <button data-section="staff">Staff</button>
+        <button data-section="communication">Communication</button>
+        <button data-section="eservices">E-Services</button>
+        <button data-section="feedback">Feedback</button>
+        <button data-section="contacts">Contacts</button>
+    </nav>
+
+    <button class="fullscreen-btn" id="btn-fullscreen" title="Toggle Fullscreen (or press F)">Fullscreen</button>
+
+    <main id="main-content">
+        <!-- Dashboard -->
+        <section class="tab-section active" id="dashboard">
+            <div class="section-title">Dashboard</div>
+            <h2>Mission Statement</h2>
+            <p>To nurture excellence, integrity, and innovation in every student, preparing them for a bright future.</p>
+            <h2>Vision Statement</h2>
+            <p>To be a leading institution that empowers learners to achieve their full potential and make a positive impact in the world.</p>
+            <h2>Graduation Gallery</h2>
+            <p style="margin-top:0;margin-bottom:0.6rem;color:#0b2440">Click any photo to view full size. Photos: Unsplash (free, realistic)</p>
+            <div class="graduation-gallery" id="graduation-gallery">
+                <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=60" data-full="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=2000&q=80" alt="Graduates celebrating" data-caption="Graduation caps toss — class of 2023">
+                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=60" data-full="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=2000&q=80" alt="Graduate portrait" data-caption="Proud graduate receiving diploma">
+                <img src="https://images.unsplash.com/photo-1517520287167-4bbf64a00d66?auto=format&fit=crop&w=400&q=60" data-full="https://images.unsplash.com/photo-1517520287167-4bbf64a00d66?auto=format&fit=crop&w=2000&q=80" alt="Group photo" data-caption="Class photo after ceremony">
+                <img src="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=60" data-full="https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=2000&q=80" alt="Graduate throwing hat" data-caption="Caps in the air">
+            </div>
+        </section>
+
+        <!-- Feedback/Comments -->
+        <section class="tab-section" id="feedback">
+            <div class="section-title">User Feedback & Comments</div>
+            <form id="feedback-form">
+                <div class="form-group">
+                    <label for="feedback-name">Your Name</label>
+                    <input type="text" id="feedback-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="feedback-message">Comment / Feedback / Clarification</label>
+                    <textarea id="feedback-message" required></textarea>
+                </div>
+                <button type="submit">Submit Feedback</button>
+            </form>
+            <ul class="feedback-list" id="feedback-list"></ul>
+        </section>
+
+        <!-- OPAC -->
+        <section class="tab-section" id="opac">
+            <div class="section-title">Library OPAC (Online Public Access Catalog)</div>
+            <form id="opac-search-form">
+                <div class="form-group">
+                    <label for="opac-search">Search Books</label>
+                    <input type="text" id="opac-search" placeholder="Enter title, author, or keyword...">
+                </div>
+                <button type="submit">Search</button>
+            </form>
+            <table class="opac-table" id="opac-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Results will appear here -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- E-Services -->
+        <section class="tab-section" id="eservices">
+            <div class="section-title">E-Services</div>
+            <ul class="e-services-list">
+                <li><button class="btn" onclick="alert('Transcript request submitted!')">Request Transcript</button></li>
+                <li><button class="btn" onclick="alert('Certificate request submitted!')">Request Certificate</button></li>
+                <li><button class="btn" onclick="alert('ID Card request submitted!')">Request Student ID Card</button></li>
+                <li><button class="btn" onclick="alert('Fee Statement request submitted!')">Request Fee Statement</button></li>
+            </ul>
+        </section>
+
+        <!-- Classes -->
+        <section class="tab-section" id="classes">
+            <div class="section-title">Classes</div>
+            <ul class="class-list" id="class-list">
+                <li>Grade 1</li>
+                <li>Grade 2</li>
+                <li>Grade 3</li>
+                <li>Grade 4</li>
+                <li>Grade 5</li>
+                <li>Grade 6</li>
+                <li>Grade 7</li>
+                <li>Grade 8</li>
+                <li>Grade 9</li>
+                <li>Grade 10</li>
+            </ul>
+        </section>
+
+        <!-- Students Management -->
+        <section class="tab-section" id="students">
+            <div class="section-title">Student Management</div>
+            <div class="search-bar">
+                <input type="text" id="student-search" placeholder="Search students by name or class..." />
+            </div>
+            <form id="student-form">
+                <div class="form-group">
+                    <label for="student-name">Full Name</label>
+                    <input type="text" id="student-name" name="student-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="student-age">Age</label>
+                    <input type="number" id="student-age" name="student-age" required>
+                </div>
+                <div class="form-group">
+                    <label for="student-class">Class</label>
+                    <select id="student-class" name="student-class" required>
+                        <option value="">Select Class</option>
+                        <option value="Grade 1">Grade 1</option>
+                        <option value="Grade 2">Grade 2</option>
+                        <option value="Grade 3">Grade 3</option>
+                        <option value="Grade 4">Grade 4</option>
+                        <option value="Grade 5">Grade 5</option>
+                        <option value="Grade 6">Grade 6</option>
+                        <option value="Grade 7">Grade 7</option>
+                        <option value="Grade 8">Grade 8</option>
+                        <option value="Grade 9">Grade 9</option>
+                        <option value="Grade 10">Grade 10</option>
+                    </select>
+                </div>
+                <button type="submit">Add Student</button>
+            </form>
+            <div class="list-title">Student List</div>
+            <div id="student-list"></div>
+        </section>
+
+        <!-- Timetable -->
+        <section class="tab-section" id="timetable">
+            <div class="section-title">School Timetable (Grades 1–10)</div>
+            <table class="timetable-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>08:00–09:00</td>
+                        <td>Math</td><td>English</td><td>Science</td><td>Math</td><td>English</td>
+                    </tr>
+                    <tr>
+                        <td>09:00–10:00</td>
+                        <td>Science</td><td>Math</td><td>English</td><td>Science</td><td>Math</td>
+                    </tr>
+                    <tr>
+                        <td>10:00–10:30</td>
+                        <td colspan="5">Break</td>
+                    </tr>
+                    <tr>
+                        <td>10:30–11:30</td>
+                        <td>Social Studies</td><td>ICT</td><td>Social Studies</td><td>ICT</td><td>Social Studies</td>
+                    </tr>
+                    <tr>
+                        <td>11:30–12:30</td>
+                        <td>Physical Ed.</td><td>Art</td><td>Physical Ed.</td><td>Art</td><td>Physical Ed.</td>
+                    </tr>
+                    <tr>
+                        <td>12:30–13:30</td>
+                        <td colspan="5">Lunch</td>
+                    </tr>
+                    <tr>
+                        <td>13:30–15:00</td>
+                        <td>Languages</td><td>Languages</td><td>Languages</td><td>Languages</td><td>Languages</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>Timetable applies to all classes. Special lessons and clubs are scheduled on Fridays after 15:00.</p>
+        </section>
+
+        <!-- Attendance -->
+        <section class="tab-section" id="attendance">
+            <div class="section-title">Attendance</div>
+            <form id="attendance-form">
+                <div class="form-group">
+                    <label for="attendance-date">Date</label>
+                    <input type="date" id="attendance-date" name="attendance-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="attendance-student">Student Name</label>
+                    <input type="text" id="attendance-student" name="attendance-student" required>
+                </div>
+                <div class="form-group">
+                    <label for="attendance-status">Status</label>
+                    <select id="attendance-status" name="attendance-status" required>
+                        <option value="">Select Status</option>
+                        <option value="Present">Present</option>
+                        <option value="Absent">Absent</option>
+                        <option value="Late">Late</option>
+                    </select>
+                </div>
+                <button type="submit">Add Attendance</button>
+            </form>
+            <div class="list-title">Attendance Records</div>
+            <div id="attendance-list"></div>
+        </section>
+
+        <!-- Library -->
+        <section class="tab-section" id="library">
+            <div class="section-title">Library</div>
+            <form id="library-form">
+                <div class="form-group">
+                    <label for="library-title">Book Title</label>
+                    <input type="text" id="library-title" name="library-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="library-author">Author</label>
+                    <input type="text" id="library-author" name="library-author" required>
+                </div>
+                <button type="submit">Add Book</button>
+            </form>
+            <div class="list-title">Library Books</div>
+            <div id="library-list"></div>
+        </section>
+
+        <!-- Finance -->
+        <section class="tab-section" id="finance">
+            <div class="section-title">Finance & Payments</div>
+            <form id="finance-form">
+                <div class="form-group">
+                    <label for="finance-student">Student Name</label>
+                    <input type="text" id="finance-student" name="finance-student" required>
+                </div>
+                <div class="form-group">
+                    <label for="finance-class">Class</label>
+                    <select id="finance-class" name="finance-class" required>
+                        <option value="">Select Class</option>
+                        <option value="Grade 1">Grade 1</option>
+                        <option value="Grade 2">Grade 2</option>
+                        <option value="Grade 3">Grade 3</option>
+                        <option value="Grade 4">Grade 4</option>
+                        <option value="Grade 5">Grade 5</option>
+                        <option value="Grade 6">Grade 6</option>
+                        <option value="Grade 7">Grade 7</option>
+                        <option value="Grade 8">Grade 8</option>
+                        <option value="Grade 9">Grade 9</option>
+                        <option value="Grade 10">Grade 10</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="finance-amount">Amount</label>
+                    <input type="number" id="finance-amount" name="finance-amount" required>
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <div class="payment-options">
+                        <label class="payment-option"><input type="radio" name="finance-method" value="Cash" required> Cash</label>
+                        <label class="payment-option"><input type="radio" name="finance-method" value="Bank Transfer"> Bank Transfer</label>
+                        <label class="payment-option"><input type="radio" name="finance-method" value="Mobile Money"> Mobile Money</label>
+                        <label class="payment-option"><input type="radio" name="finance-method" value="Card"> Card</label>
+                    </div>
+                </div>
+                <button type="submit">Record Payment</button>
+            </form>
+            <div class="list-title">Payment History</div>
+            <div id="finance-list"></div>
+        </section>
+
+        <!-- Grading -->
+        <section class="tab-section" id="grading">
+            <div class="section-title">Grading & Report Cards</div>
+            <form id="grading-form">
+                <div class="form-group">
+                    <label for="grading-student">Student Name</label>
+                    <input type="text" id="grading-student" name="grading-student" required>
+                </div>
+                <div class="form-group">
+                    <label for="grading-class">Class</label>
+                    <select id="grading-class" name="grading-class" required>
+                        <option value="">Select Class</option>
+                        <option value="Grade 1">Grade 1</option>
+                        <option value="Grade 2">Grade 2</option>
+                        <option value="Grade 3">Grade 3</option>
+                        <option value="Grade 4">Grade 4</option>
+                        <option value="Grade 5">Grade 5</option>
+                        <option value="Grade 6">Grade 6</option>
+                        <option value="Grade 7">Grade 7</option>
+                        <option value="Grade 8">Grade 8</option>
+                        <option value="Grade 9">Grade 9</option>
+                        <option value="Grade 10">Grade 10</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="grading-subject">Subject</label>
+                    <input type="text" id="grading-subject" name="grading-subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="grading-score">Score</label>
+                    <input type="number" id="grading-score" name="grading-score" required>
+                </div>
+                <button type="submit">Add Grade</button>
+            </form>
+            <div class="list-title">Report Cards</div>
+            <div id="grading-list"></div>
+        </section>
+
+        <!-- Staff -->
+        <section class="tab-section" id="staff">
+            <div class="section-title">Staff Management</div>
+            <form id="staff-form">
+                <div class="form-group">
+                    <label for="staff-name">Staff Name</label>
+                    <input type="text" id="staff-name" name="staff-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="staff-role">Role</label>
+                    <input type="text" id="staff-role" name="staff-role" required>
+                </div>
+                <button type="submit">Add Staff</button>
+            </form>
+            <div class="list-title">Staff Members</div>
+            <div id="staff-list"></div>
+        </section>
+
+        <!-- Communication -->
+        <section class="tab-section" id="communication">
+            <div class="section-title">Communication</div>
+            <form id="communication-form">
+                <div class="form-group">
+                    <label for="communication-to">To (Student/Parent/Staff)</label>
+                    <input type="text" id="communication-to" name="communication-to" required>
+                </div>
+                <div class="form-group">
+                    <label for="communication-message">Message</label>
+                    <textarea id="communication-message" name="communication-message" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Platform</label>
+                    <div class="comm-platforms">
+                        <label class="comm-platform"><input type="radio" name="communication-platform" value="Email" required> Email</label>
+                        <label class="comm-platform"><input type="radio" name="communication-platform" value="SMS"> SMS</label>
+                        <label class="comm-platform"><input type="radio" name="communication-platform" value="WhatsApp"> WhatsApp</label>
+                        <label class="comm-platform"><input type="radio" name="communication-platform" value="In-App"> In-App</label>
+                    </div>
+                </div>
+                <button type="submit">Send Message</button>
+            </form>
+            <div class="list-title">Messages</div>
+            <div id="communication-list"></div>
+        </section>
+
+        <!-- Contacts -->
+        <section class="tab-section" id="contacts">
+            <div class="section-title">School Contacts</div>
+            <ul class="contact-list">
+                <li><strong>Phone:</strong> +254 712 345678</li>
+                <li><strong>Email:</strong> info@brunoschools.ac.ke</li>
+                <li><strong>WhatsApp:</strong> +254 712 345678</li>
+                <li><strong>Address:</strong> 123 Excellence Avenue, Nairobi, Kenya</li>
+            </ul>
+        </section>
+    </main>
+
+    <!-- Lightbox modal -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-hidden="true">
+        <div class="lightbox-content" role="document">
+            <button class="lightbox-close" id="lightbox-close" aria-label="Close">×</button>
+            <img id="lightbox-img" src="" alt="">
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+        </div>
+    </div>
+
+    <div class="shortcut-hint" id="shortcut-hint">
+        Shortcuts: ← / → / PgUp / PgDn / Space, Shift+Space, Home, End, Ctrl+1..9, Alt+H / Alt+L
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Elements
+        const dashboardIcon = document.getElementById('dashboard-icon');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarButtons = Array.from(document.querySelectorAll('#sidebar button'));
+        const tabSections = Array.from(document.querySelectorAll('.tab-section'));
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+
+        // Accessible sidebar toggle (click, Enter, Space)
+        function setSidebarState(open) {
+            if (open) {
+                sidebar.classList.add('open');
+                sidebar.setAttribute('aria-hidden','false');
+                dashboardIcon.setAttribute('aria-expanded','true');
+            } else {
+                sidebar.classList.remove('open');
+                sidebar.setAttribute('aria-hidden','true');
+                dashboardIcon.setAttribute('aria-expanded','false');
+            }
+        }
+        function toggleSidebar() { setSidebarState(!sidebar.classList.contains('open')); }
+
+        dashboardIcon.addEventListener('click', toggleSidebar);
+        dashboardIcon.addEventListener('keydown', function(e){
+            if (e.key === 'Enter' || e.code === 'Space') { e.preventDefault(); toggleSidebar(); }
+        });
+
+        // Navigation
+        function activateSectionByIndex(idx){
+            if(idx < 0 || idx >= sidebarButtons.length) return;
+            const btn = sidebarButtons[idx];
+            sidebarButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            tabSections.forEach(sec => sec.classList.remove('active'));
+            const section = document.getElementById(btn.dataset.section);
+            if(section) section.classList.add('active');
+            setSidebarState(false);
+            if(section) section.scrollIntoView({behavior:'smooth'});
+        }
+        sidebarButtons.forEach((btn, i) => {
+            btn.addEventListener('click', () => activateSectionByIndex(i));
+        });
+
+        function getActiveIndex(){ return sidebarButtons.findIndex(b => b.classList.contains('active')); }
+        function nextSection(){ const idx = getActiveIndex(); activateSectionByIndex((idx + 1) % sidebarButtons.length); }
+        function prevSection(){ const idx = getActiveIndex(); activateSectionByIndex((idx - 1 + sidebarButtons.length) % sidebarButtons.length); }
+        function firstSection(){ activateSectionByIndex(0); }
+        function lastSection(){ activateSectionByIndex(sidebarButtons.length - 1); }
+        function goToSectionNumber(n){ if(n >= 1 && n <= sidebarButtons.length) activateSectionByIndex(n - 1); }
+
+        // Fullscreen toggle (button)
+        btnFullscreen.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(()=>{});
+            } else {
+                document.exitFullscreen().catch(()=>{});
+            }
+        });
+
+        // Global keyboard nav
+        document.addEventListener('keydown', function(e){
+            const tag = (e.target && e.target.tagName) || '';
+            const isEditable = e.target && (e.target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT');
+            if(isEditable) return;
+
+            if(e.ctrlKey && !e.shiftKey && !e.altKey){
+                const key = e.key;
+                if(/^[1-9]$/.test(key)){
+                    goToSectionNumber(parseInt(key,10));
+                    e.preventDefault();
+                    return;
+                }
+            }
+            if(e.altKey && !e.ctrlKey && !e.metaKey){
+                if(e.key.toLowerCase() === 'h'){ prevSection(); e.preventDefault(); return; }
+                if(e.key.toLowerCase() === 'l'){ nextSection(); e.preventDefault(); return; }
+            }
+            if(e.key === 'Home'){ firstSection(); e.preventDefault(); return; }
+            if(e.key === 'End'){ lastSection(); e.preventDefault(); return; }
+            if(e.code === 'Space'){
+                if(e.shiftKey){ prevSection(); e.preventDefault(); return; }
+                else { nextSection(); e.preventDefault(); return; }
+            }
+            if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ prevSection(); e.preventDefault(); return; }
+            if(e.key === 'ArrowRight' || e.key === 'PageDown'){ nextSection(); e.preventDefault(); return; }
+            if(e.key.toLowerCase() === 'f' && !e.ctrlKey && !e.altKey && !e.metaKey){
+                btnFullscreen.click();
+                e.preventDefault();
+                return;
+            }
+        });
+
+        // Basic app data & renderers (unchanged behaviour)
+        // Feedback
+        let feedbacks = [
+            {name: "Jane Doe", message: "Great school system!", date: "2024-06-01 10:00"},
+            {name: "Parent", message: "How do I request a transcript?", date: "2024-06-02 09:30"}
+        ];
+        const feedbackForm = document.getElementById('feedback-form');
+        if (feedbackForm) {
+            feedbackForm.addEventListener('submit', function(e){
+                e.preventDefault();
+                const name = document.getElementById('feedback-name').value.trim();
+                const message = document.getElementById('feedback-message').value.trim();
+                if(name && message){
+                    feedbacks.push({name, message, date: new Date().toLocaleString()});
+                    renderFeedbackList();
+                    this.reset();
+                }
+            });
+        }
+        function renderFeedbackList(){
+            const el = document.getElementById('feedback-list');
+            if(!el) return;
+            if(feedbacks.length === 0) el.innerHTML = "<li>No feedback yet.</li>";
+            else el.innerHTML = feedbacks.map(f => `<li><strong>${f.name}</strong> (${f.date}):<br>${f.message}</li>`).join('');
+        }
+        renderFeedbackList();
+
+        // Library & OPAC
+        let books = [
+            {title: "Mathematics for Beginners", author: "John Smith"},
+            {title: "Science Explorers", author: "Mary Johnson"},
+            {title: "History of Africa", author: "David Kimani"}
+        ];
+        const libraryForm = document.getElementById('library-form');
+        if (libraryForm) {
+            libraryForm.addEventListener('submit', function(e){
+                e.preventDefault();
+                const title = document.getElementById('library-title').value.trim();
+                const author = document.getElementById('library-author').value.trim();
+                if(title && author){ books.push({title, author}); renderLibraryList(); renderOpacTable(); this.reset(); }
+            });
+        }
+        function renderLibraryList(){
+            const el = document.getElementById('library-list');
+            if(!el) return;
+            if(books.length === 0) el.innerHTML = "<p>No books in library.</p>";
+            else el.innerHTML = "<ul class='library-list'>" + books.map(b=>`<li><strong>${b.title}</strong> by ${b.author}</li>`).join('') + "</ul>";
+        }
+        renderLibraryList();
+        const opacForm = document.getElementById('opac-search-form');
+        if(opacForm) opacForm.addEventListener('submit', function(e){ e.preventDefault(); renderOpacTable(document.getElementById('opac-search').value.trim()); });
+        function renderOpacTable(search=''){
+            const tbody = document.querySelector('#opac-table tbody');
+            if(!tbody) return;
+            let filtered = books;
+            if(search) filtered = books.filter(b => b.title.toLowerCase().includes(search.toLowerCase()) || b.author.toLowerCase().includes(search.toLowerCase()));
+            tbody.innerHTML = filtered.length === 0 ? "<tr><td colspan='2'>No books found.</td></tr>" : filtered.map(b=>`<tr><td>${b.title}</td><td>${b.author}</td></tr>`).join('');
+        }
+        renderOpacTable();
+
+        // Students
+        let students = [
+            {name: "Alice Wambua", age: 14, sclass: "Grade 8"},
+            {name: "Brian Otieno", age: 13, sclass: "Grade 7"}
+        ];
+        const studentForm = document.getElementById('student-form');
+        if(studentForm){
+            studentForm.addEventListener('submit', function(e){
+                e.preventDefault();
+                const name = document.getElementById('student-name').value.trim();
+                const age = document.getElementById('student-age').value.trim();
+                const sclass = document.getElementById('student-class').value;
+                if(name && age && sclass){ students.push({name, age, sclass}); renderStudentList(); this.reset(); }
+            });
+        }
+        const studentSearch = document.getElementById('student-search');
+        if(studentSearch) studentSearch.addEventListener('input', function(){ renderStudentList(this.value.trim()); });
+        function renderStudentList(search=''){
+            let filtered = students;
+            if(search) filtered = students.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.sclass.toLowerCase().includes(search.toLowerCase()));
+            const el = document.getElementById('student-list');
+            if(!el) return;
+            if(filtered.length === 0) el.innerHTML = "<p>No students found.</p>";
+            else el.innerHTML = "<ul>" + filtered.map((s,i)=>`<li><strong>${s.name}</strong> (Age: ${s.age}, Class: ${s.sclass}) <span class='student-actions'><button class='btn' onclick='editStudent(${i})'>Edit</button> <button class='btn' onclick='deleteStudent(${i})'>Delete</button> <button class='btn' onclick='viewStudent(${i})'>View</button></span></li>`).join('') + "</ul>";
+        }
+        window.editStudent = function(idx){ const s = students[idx]; document.getElementById('student-name').value = s.name; document.getElementById('student-age').value = s.age; document.getElementById('student-class').value = s.sclass; students.splice(idx,1); renderStudentList(); }
+        window.deleteStudent = function(idx){ if(confirm("Delete this student?")){ students.splice(idx,1); renderStudentList(); } }
+        window.viewStudent = function(idx){ const s = students[idx]; alert(`Student Details:\nName: ${s.name}\nAge: ${s.age}\nClass: ${s.sclass}`); }
+        renderStudentList();
+
+        // Attendance
+        let attendance = [
+            {date: "2024-06-01", student: "Alice Wambua", status: "Present"},
+            {date: "2024-06-01", student: "Brian Otieno", status: "Absent"}
+        ];
+        const attendanceForm = document.getElementById('attendance-form');
+        if(attendanceForm) attendanceForm.addEventListener('submit', function(e){ e.preventDefault(); const date = document.getElementById('attendance-date').value; const student = document.getElementById('attendance-student').value.trim(); const status = document.getElementById('attendance-status').value; if(date && student && status){ attendance.push({date, student, status}); renderAttendanceList(); this.reset(); }} );
+        function renderAttendanceList(){ const el = document.getElementById('attendance-list'); if(!el) return; if(attendance.length === 0) el.innerHTML = "<p>No attendance records.</p>"; else el.innerHTML = "<ul class='attendance-list'>" + attendance.map(a=>`<li>${a.date}: <strong>${a.student}</strong> - ${a.status}</li>`).join('') + "</ul>"; }
+        renderAttendanceList();
+
+        // Finance
+        let payments = [{student: "Alice Wambua", sclass: "Grade 8", amount: 12000, method: "Cash", date: "2024-06-01"}];
+        const financeForm = document.getElementById('finance-form');
+        if(financeForm) financeForm.addEventListener('submit', function(e){ e.preventDefault(); const student = document.getElementById('finance-student').value.trim(); const sclass = document.getElementById('finance-class').value; const amount = document.getElementById('finance-amount').value; const method = document.querySelector('input[name="finance-method"]:checked'); if(student && sclass && amount && method){ payments.push({student, sclass, amount, method: method.value, date: new Date().toLocaleDateString()}); renderFinanceList(); this.reset(); }} );
+        function renderFinanceList(){ const el = document.getElementById('finance-list'); if(!el) return; if(payments.length === 0) el.innerHTML = "<p>No payments recorded.</p>"; else el.innerHTML = "<ul>" + payments.map(p=>`<li><strong>${p.student}</strong> (${p.sclass}) paid <strong>KES ${p.amount}</strong> via <strong>${p.method}</strong> on ${p.date}</li>`).join('') + "</ul>"; }
+        renderFinanceList();
+
+        // Grading
+        let grades = [{student: "Alice Wambua", sclass: "Grade 8", subject: "Math", score: 85},{student: "Alice Wambua", sclass: "Grade 8", subject: "English", score: 90},{student: "Brian Otieno", sclass: "Grade 7", subject: "Math", score: 78}];
+        const gradingForm = document.getElementById('grading-form');
+        if(gradingForm) gradingForm.addEventListener('submit', function(e){ e.preventDefault(); const student = document.getElementById('grading-student').value.trim(); const sclass = document.getElementById('grading-class').value; const subject = document.getElementById('grading-subject').value.trim(); const score = document.getElementById('grading-score').value; if(student && sclass && subject && score){ grades.push({student, sclass, subject, score}); renderGradingList(); this.reset(); }} );
+        function renderGradingList(){ const el = document.getElementById('grading-list'); if(!el) return; if(grades.length === 0) el.innerHTML = "<p>No grades recorded.</p>"; else { const grouped = {}; grades.forEach(g=>{ const key = `${g.student} (${g.sclass})`; if(!grouped[key]) grouped[key]=[]; grouped[key].push(g); }); el.innerHTML = Object.entries(grouped).map(([student, arr]) => `<div class="report-card"><strong>Report Card for ${student}</strong><ul>${arr.map(g=>`<li>${g.subject}: <strong>${g.score}</strong></li>`).join('')}</ul><em>Average: <strong>${(arr.reduce((sum,g)=>sum+parseFloat(g.score),0)/arr.length).toFixed(2)}</strong></em></div>`).join(''); } }
+        renderGradingList();
+
+        // Staff
+        let staff = [{name: "Mr. Kamau", role: "Principal"},{name: "Ms. Achieng", role: "Math Teacher"}];
+        const staffForm = document.getElementById('staff-form');
+        if(staffForm) staffForm.addEventListener('submit', function(e){ e.preventDefault(); const name = document.getElementById('staff-name').value.trim(); const role = document.getElementById('staff-role').value.trim(); if(name && role){ staff.push({name, role}); renderStaffList(); this.reset(); }} );
+        function renderStaffList(){ const el = document.getElementById('staff-list'); if(!el) return; if(staff.length === 0) el.innerHTML = "<p>No staff members added.</p>"; else el.innerHTML = "<ul class='staff-list'>" + staff.map(s=>`<li><strong>${s.name}</strong> - ${s.role}</li>`).join('') + "</ul>"; }
+        renderStaffList();
+
+        // Communication
+        let messages = [{to: "Parent", message: "Your child did well in exams!", platform: "SMS", date: "2024-06-01 11:00"}];
+        const commForm = document.getElementById('communication-form');
+        if(commForm) commForm.addEventListener('submit', function(e){ e.preventDefault(); const to = document.getElementById('communication-to').value.trim(); const message = document.getElementById('communication-message').value.trim(); const platform = document.querySelector('input[name="communication-platform"]:checked'); if(to && message && platform){ messages.push({to, message, platform: platform.value, date: new Date().toLocaleDateString()}); renderCommunicationList(); this.reset(); }} );
+        function renderCommunicationList(){ const el = document.getElementById('communication-list'); if(!el) return; if(messages.length === 0) el.innerHTML = "<p>No messages sent.</p>"; else el.innerHTML = "<ul>" + messages.map(m=>`<li><strong>To:</strong> ${m.to} | <strong>Via:</strong> ${m.platform} | <strong>At:</strong> ${m.date}<br><span>${m.message}</span></li>`).join('') + "</ul>"; }
+        renderCommunicationList();
+
+        // Graduation gallery lightbox
+        const gallery = document.getElementById('graduation-gallery');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCaption = document.getElementById('lightbox-caption');
+        const lightboxClose = document.getElementById('lightbox-close');
+
+        if (gallery) {
+            gallery.addEventListener('click', (e) => {
+                const img = e.target.closest('img');
+                if(!img) return;
+                const full = img.dataset.full || img.src;
+                const caption = img.dataset.caption || img.alt || '';
+                lightboxImg.src = full;
+                lightboxImg.alt = img.alt || '';
+                lightboxCaption.textContent = caption;
+                lightbox.classList.add('open');
+                lightbox.setAttribute('aria-hidden','false');
+                document.body.style.overflow = 'hidden';
+            });
+        }
+        function closeLightbox(){
+            if(!lightbox) return;
+            lightbox.classList.remove('open');
+            lightbox.setAttribute('aria-hidden','true');
+            lightboxImg.src = '';
+            document.body.style.overflow = '';
+        }
+        lightboxClose && lightboxClose.addEventListener('click', closeLightbox);
+        lightbox && lightbox.addEventListener('click', (e)=>{ if(e.target === lightbox) closeLightbox(); });
+        document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && lightbox && lightbox.classList.contains('open')) closeLightbox(); });
+
+    }); // DOMContentLoaded
+    </script>
+</body>
+</html>
